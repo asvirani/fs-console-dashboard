@@ -1,12 +1,20 @@
 {
   "packageDirectories": [
     {
+      "versionName": "ver 0.1",
+      "versionNumber": "0.1.0.NEXT",
       "path": "force-app",
-      "default": true
+      "default": true,
+      "package": "FSL Console Dashboard",
+      "versionDescription": ""
     }
   ],
-  "name": ".",
+  "name": "fs-console-dashboard",
   "namespace": "",
   "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "65.0"
+  "sourceApiVersion": "65.0",
+  "packageAliases": {
+    "FSL Console Dashboard": "0HoKa000000PHwkKAG",
+    "FSL Console Dashboard@0.1.0-1": "04tKa000002bKcmIAE"
+  }
 }

@@ -1,7 +1,11 @@
 {
-  "orgName": "armaanvirani company",
-  "edition": "Developer",
-  "features": ["EnableSetPasswordInApi"],
+  "orgName": "FSL Console Dashboard",
+  "edition": "Enterprise",
+  "features": [
+    "EnableSetPasswordInApi",
+    "FieldService",
+    "ServiceCloud"
+  ],
   "settings": {
     "lightningExperienceSettings": {
       "enableS1DesktopEnabled": true

@@ -38,5 +38,29 @@
         <members>serviceAppointmentSearchController</members>
         <name>ApexClass</name>
     </types>
+    <types>
+        <members>Mobile_Dashboard_Setting__c</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>DemoChartSFS__mdt</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>Asset.Asset_Availability__c</members>
+        <members>Asset.Asset_Downtime__c</members>
+        <members>Asset.Asset_Reliability__c</members>
+        <members>Asset.Average_Repair_Time__c</members>
+        <members>Asset.Average_Time_Between_Failures__c</members>
+        <members>Asset.Entitlement_Status__c</members>
+        <members>Asset.SDO_Service_Perform_Status__c</members>
+        <members>Asset.SDO_Service_Warranty_Services__c</members>
+        <members>ServiceAppointment.Service_Territory_Name__c</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>CustomLabels</members>
+        <name>CustomLabels</name>
+    </types>
     <version>62.0</version>
 </Package>
