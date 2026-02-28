@@ -78,7 +78,19 @@ A comprehensive Lightning Web Component dashboard for Salesforce Field Service o
 
 ## Installation
 
-### Option 1: Deploy via CLI (Recommended)
+### Option 1: Unlocked Package Install (Recommended)
+
+Install directly via URL:
+
+https://login.salesforce.com/packaging/installPackage.apexp?p0=04tKa000002bKcmIAE
+
+Or via CLI:
+
+```bash
+sf package install --package 04tKa000002bKcmIAE --target-org my-org --wait 10
+```
+
+### Option 2: Deploy Source via CLI
 
 ```bash
 # Clone the repo
@@ -92,17 +104,11 @@ sf org login web --alias my-org
 sf project deploy start --manifest manifest/package.xml --target-org my-org
 ```
 
-### Option 2: Deploy Source Directly
+### Option 3: Deploy Source Directly
 
 ```bash
 sf project deploy start --source-dir force-app --target-org my-org
 ```
-
-### Option 3: Manual Install
-
-1. Copy the contents of `force-app/main/default/classes/` to your org's Apex classes
-2. Copy the contents of `force-app/main/default/lwc/` to your org's LWC directory
-3. Deploy via VS Code with the Salesforce Extensions pack
 
 ### After Deployment
 
