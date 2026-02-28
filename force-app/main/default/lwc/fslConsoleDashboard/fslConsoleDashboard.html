@@ -1,0 +1,327 @@
+<template>
+    <!-- HEADER -->
+    <div class="dashboard-header">
+        <div class="header-left">
+            <lightning-icon icon-name="standard:dashboard" size="medium" class="header-icon"></lightning-icon>
+            <div class="header-text">
+                <h1 class="header-title">Field Service Operations</h1>
+                <p class="header-subtitle">Real-time KPI Dashboard</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <template lwc:if={lastRefresh}>
+                <span class="refresh-time">Last updated: {lastRefresh}</span>
+            </template>
+            <lightning-button-icon
+                icon-name="utility:refresh"
+                alternative-text="Refresh"
+                variant="border-filled"
+                onclick={handleRefresh}
+                class="refresh-btn"
+            ></lightning-button-icon>
+        </div>
+    </div>
+
+    <!-- LOADING -->
+    <template lwc:if={isLoading}>
+        <div class="loading-container">
+            <lightning-spinner alternative-text="Loading dashboard..." size="large"></lightning-spinner>
+        </div>
+    </template>
+
+    <!-- ERROR -->
+    <template lwc:if={error}>
+        <div class="error-container">
+            <lightning-icon icon-name="utility:error" variant="error" size="large"></lightning-icon>
+            <p class="error-text">Unable to load dashboard data. Please try refreshing.</p>
+        </div>
+    </template>
+
+    <!-- DASHBOARD GRID -->
+    <template lwc:if={hasData}>
+
+        <!-- ROW 1: Critical Priority -->
+        <div class="section-label">
+            <span class="priority-dot priority-critical"></span>
+            <span class="section-text">Critical Priority</span>
+        </div>
+        <div class="kpi-row kpi-row-2">
+
+            <!-- 1. PM Compliance Rate -->
+            <div class="kpi-card card-critical">
+                <div class="card-header">
+                    <div class="card-icon-wrap icon-critical">
+                        <lightning-icon icon-name="standard:maintenance_plan" size="small"></lightning-icon>
+                    </div>
+                    <span class="card-title">PM Compliance Rate</span>
+                </div>
+                <div class="card-body">
+                    <div class={pmComplianceClass}>{pmComplianceRate}%</div>
+                    <div class="gauge-track">
+                        <div class="gauge-fill gauge-critical" style={pmComplianceGaugeStyle}></div>
+                    </div>
+                    <div class="card-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Scheduled</span>
+                            <span class="detail-value">{pmScheduled}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">On Time</span>
+                            <span class="detail-value detail-good">{pmCompletedOnTime}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Overdue</span>
+                            <span class="detail-value detail-bad">{pmOverdue}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Critical Assets Down -->
+            <div class="kpi-card card-critical">
+                <div class="card-header">
+                    <div class="card-icon-wrap icon-critical">
+                        <lightning-icon icon-name="standard:asset_downtime_period" size="small"></lightning-icon>
+                    </div>
+                    <span class="card-title">Critical Assets Down</span>
+                </div>
+                <div class="card-body">
+                    <div class={criticalAssetsClass}>{criticalAssetsDown}</div>
+                    <template lwc:if={hasCriticalAssets}>
+                        <div class="assets-down-list">
+                            <template for:each={criticalAssetsList} for:item="asset">
+                                <div key={asset.assetId} class="asset-down-row">
+                                    <div class="asset-down-info">
+                                        <lightning-icon icon-name="utility:warning" size="xx-small" variant="error" class="warn-icon"></lightning-icon>
+                                        <span class="asset-name">{asset.assetName}</span>
+                                    </div>
+                                    <div class="asset-down-meta">
+                                        <span class="asset-product">{asset.productName}</span>
+                                        <span class="asset-hours">{asset.hoursDownFormatted}</span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template lwc:else>
+                        <div class="all-clear">
+                            <lightning-icon icon-name="utility:check" variant="success" size="small"></lightning-icon>
+                            <span>All critical assets operational</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 2: High Priority -->
+        <div class="section-label">
+            <span class="priority-dot priority-high"></span>
+            <span class="section-text">High Priority</span>
+        </div>
+        <div class="kpi-row kpi-row-2">
+
+            <!-- 3. Asset Availability -->
+            <div class="kpi-card card-high">
+                <div class="card-header">
+                    <div class="card-icon-wrap icon-high">
+                        <lightning-icon icon-name="standard:asset_object" size="small"></lightning-icon>
+                    </div>
+                    <span class="card-title">Asset Availability</span>
+                </div>
+                <div class="card-body">
+                    <div class={availabilityClass}>{fleetAvailability}%</div>
+                    <div class="gauge-track">
+                        <div class="gauge-fill gauge-high" style={availabilityGaugeStyle}></div>
+                    </div>
+                    <div class="benchmark-line">Target: 98%</div>
+                    <div class="card-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Total Installed</span>
+                            <span class="detail-value">{totalInstalledAssets}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Above 98%</span>
+                            <span class="detail-value detail-good">{assetsAboveThreshold}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Below 98%</span>
+                            <span class="detail-value detail-bad">{assetsBelowThreshold}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Mean Time to Repair -->
+            <div class="kpi-card card-high">
+                <div class="card-header">
+                    <div class="card-icon-wrap icon-high">
+                        <lightning-icon icon-name="standard:work_order" size="small"></lightning-icon>
+                    </div>
+                    <span class="card-title">Mean Time to Repair</span>
+                </div>
+                <div class="card-body">
+                    <div class={mttrClass}>{overallMTTR}h</div>
+                    <template lwc:if={hasMttrData}>
+                        <div class="mttr-breakdown">
+                            <template for:each={mttrByProductLine} for:item="line">
+                                <div key={line.productFamily} class="mttr-row">
+                                    <div class="mttr-label">
+                                        <span class="mttr-family">{line.productFamily}</span>
+                                        <span class="mttr-hours">{line.avgHoursFormatted}h</span>
+                                    </div>
+                                    <div class="mttr-bar-track">
+                                        <div class="mttr-bar-fill" style={line.barWidth}></div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template lwc:else>
+                        <div class="card-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Avg Repair Time</span>
+                                <span class="detail-value">{overallMTTR}h</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 3: Medium Priority -->
+        <div class="section-label">
+            <span class="priority-dot priority-medium"></span>
+            <span class="section-text">Medium Priority</span>
+        </div>
+        <div class="kpi-row kpi-row-2">
+
+            <!-- 5. SLA Compliance -->
+            <div class="kpi-card card-medium">
+                <div class="card-header">
+                    <div class="card-icon-wrap icon-medium">
+                        <lightning-icon icon-name="standard:entitlement" size="small"></lightning-icon>
+                    </div>
+                    <span class="card-title">SLA Compliance Rate</span>
+                </div>
+                <div class="card-body">
+                    <div class={slaClass}>{slaComplianceRate}%</div>
+                    <div class="gauge-track">
+                        <div class="gauge-fill gauge-medium" style={slaGaugeStyle}></div>
+                    </div>
+                    <div class="card-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Critical WOs</span>
+                            <span class="detail-value">{slaCriticalTotal}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Met SLA</span>
+                            <span class="detail-value detail-good">{slaMetCount}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Missed</span>
+                            <span class="detail-value detail-bad">{slaMissed}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. First Time Fix Rate -->
+            <div class="kpi-card card-medium">
+                <div class="card-header">
+                    <div class="card-icon-wrap icon-medium">
+                        <lightning-icon icon-name="standard:first_non_empty" size="small"></lightning-icon>
+                    </div>
+                    <span class="card-title">First Time Fix Rate</span>
+                </div>
+                <div class="card-body">
+                    <div class={ftfrClass}>{firstTimeFixRate}%</div>
+                    <div class="gauge-track">
+                        <div class="gauge-fill gauge-medium" style={ftfrGaugeStyle}></div>
+                    </div>
+                    <div class="card-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Total Resolved</span>
+                            <span class="detail-value">{totalResolved}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">First Visit</span>
+                            <span class="detail-value detail-good">{resolvedFirstVisit}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Repeat Visit</span>
+                            <span class="detail-value detail-bad">{resolvedRepeatVisit}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 4: Standard Priority -->
+        <div class="section-label">
+            <span class="priority-dot priority-standard"></span>
+            <span class="section-text">Standard Priority</span>
+        </div>
+        <div class="kpi-row kpi-row-2">
+
+            <!-- 7. Open Recalls -->
+            <div class="kpi-card card-standard">
+                <div class="card-header">
+                    <div class="card-icon-wrap icon-standard">
+                        <lightning-icon icon-name="standard:product_service_campaign" size="small"></lightning-icon>
+                    </div>
+                    <span class="card-title">Open Recalls</span>
+                </div>
+                <div class="card-body">
+                    <div class={recallClass}>{openRecallCampaigns}</div>
+                    <div class="recall-sub">Active Campaigns</div>
+                    <div class="card-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Affected Assets</span>
+                            <span class="detail-value">{affectedAssets}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Remediated</span>
+                            <span class="detail-value">{remediationPercent}%</span>
+                        </div>
+                    </div>
+                    <div class="gauge-track">
+                        <div class="gauge-fill gauge-standard" style={remediationGaugeStyle}></div>
+                    </div>
+                    <div class="benchmark-line">Remediation Progress</div>
+                </div>
+            </div>
+
+            <!-- 8. Contract Renewal Risk -->
+            <div class="kpi-card card-standard">
+                <div class="card-header">
+                    <div class="card-icon-wrap icon-standard">
+                        <lightning-icon icon-name="standard:service_contract" size="small"></lightning-icon>
+                    </div>
+                    <span class="card-title">Contract Renewal Risk</span>
+                </div>
+                <div class="card-body">
+                    <div class={contractRiskClass}>{contractsExpiring90}</div>
+                    <div class="recall-sub">Expiring in 90 Days</div>
+                    <div class="contract-segments">
+                        <div class="segment-row">
+                            <span class="segment-dot segment-renewing"></span>
+                            <span class="segment-label">Renewing</span>
+                            <span class="segment-value">{contractsRenewing}</span>
+                        </div>
+                        <div class="segment-row">
+                            <span class="segment-dot segment-at-risk"></span>
+                            <span class="segment-label">At Risk</span>
+                            <span class="segment-value">{contractsAtRisk}</span>
+                        </div>
+                        <div class="segment-row">
+                            <span class="segment-dot segment-lapsed"></span>
+                            <span class="segment-label">Lapsed</span>
+                            <span class="segment-value">{contractsLapsed}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </template>
+</template>
